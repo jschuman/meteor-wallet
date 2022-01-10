@@ -4,7 +4,7 @@ import { ContactsCollection } from '../api/ContactsCollection';
 
 export const ContactList = () => {
   const contacts = useTracker(() => {
-    return ContactsCollection.find({}).fetch()  //Tracker
+    return ContactsCollection.find({}, { sort: { createdAt: -1 }}).fetch()
   })
 
   return (
