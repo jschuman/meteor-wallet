@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { Meteor } from "meteor/meteor";
 import { ErrorAlert } from "./components/ErrorAlert";
 import { SuccessAlert } from "./components/SuccessAlert";
