@@ -1,11 +1,18 @@
 import React from 'react';
+import { useSubscribe, useFind } from 'meteor/react-meteor-data';
+import { ContactsCollection } from '../api/ContactsCollection';
 import { Modal } from './components/Modal';
+import { Loading } from './components/Loading';
+import { SelectContact } from './components/SelectContact';
 
 export const Wallet = () => {
+  const isLoading = useSubscribe('contacts')
+  const contacts = useFind(() => ContactsCollection.find({}, { sort: { createdAt: -1 }}))
+
   const [open, setOpen] = React.useState(false);
   const [isTransferring, setIsTransferring] = React.useState(false);
   const [amount, setAmount] = React.useState(0);
-  const [destinationWallet, setDestinationWallet] = React.useState("");
+  const [destinationWallet, setDestinationWallet] = React.useState({});
   const [errorMessage, setErrorMessage] = React.useState("");
 
   const wallet = {
@@ -16,6 +23,10 @@ export const Wallet = () => {
 
   const addTransaction = () => {
     console.log('New transaction', amount, destinationWallet)
+  }
+
+  if(isLoading()) {
+    return <Loading />
   }
 
   return (
@@ -71,20 +82,18 @@ export const Wallet = () => {
       }
       body={
         <>
-          {isTransferring && (<div>
-            <label htmlFor="destination" className="block text-sm font-medium text-gray-700">
-              Destination Wallet
-            </label>
-            <input
-              type="string"
-              id="destination"
-              value={destinationWallet}
-              onChange={(e) => setDestinationWallet(e.target.value)}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>)}
+          {isTransferring && (
+            <div className="mt-2">
+              <SelectContact 
+                title="Destination contact"
+                contacts={contacts}
+                contact={destinationWallet}
+                setContact={setDestinationWallet}
+              />
+            </div>
+          )}
           
-          <div>
+          <div className="mt-2">
             <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
               Amount
             </label>

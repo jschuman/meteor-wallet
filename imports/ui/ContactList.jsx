@@ -2,6 +2,7 @@ import React, { memo, useState } from 'react';
 import { useSubscribe, useFind } from 'meteor/react-meteor-data';
 import { ContactsCollection } from '../api/ContactsCollection';
 import { ErrorAlert } from "./components/ErrorAlert";
+import { Loading } from "./components/Loading";
 
 export const ContactList = () => {
   const isLoading = useSubscribe('contacts')
@@ -29,15 +30,7 @@ export const ContactList = () => {
   }
 
   if(isLoading()) {
-    return (
-      <div>
-        <div className="mt-10">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            Loading...
-          </h3>
-        </div>
-      </div>
-    )
+    return <Loading />
   }
 
   const ContactItem = memo(({ contact }) => {
