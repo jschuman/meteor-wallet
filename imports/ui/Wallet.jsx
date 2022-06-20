@@ -1,31 +1,42 @@
 import React from 'react';
 import { useSubscribe, useFind } from 'meteor/react-meteor-data';
 import { ContactsCollection } from '../api/ContactsCollection';
+import { WalletsCollection } from '../api/WalletsCollection';
 import { Modal } from './components/Modal';
 import { Loading } from './components/Loading';
 import { SelectContact } from './components/SelectContact';
 
 export const Wallet = () => {
-  const isLoading = useSubscribe('contacts')
+  const isLoadingContacts = useSubscribe('contacts')
+  const isLoadingWallets = useSubscribe('wallets')
   const contacts = useFind(() => ContactsCollection.find({}, { sort: { createdAt: -1 }}))
 
+  const [wallet] = useFind(() => WalletsCollection.find())
   const [open, setOpen] = React.useState(false);
   const [isTransferring, setIsTransferring] = React.useState(false);
   const [amount, setAmount] = React.useState(0);
   const [destinationWallet, setDestinationWallet] = React.useState({});
   const [errorMessage, setErrorMessage] = React.useState("");
 
-  const wallet = {
-    _id: "123123123",
-    balance: 5,
-    currency: 'USD'
-  }
-
   const addTransaction = () => {
-    console.log('New transaction', amount, destinationWallet)
+    Meteor.call('transactions.insert', {
+      isTransferring,
+      sourceWalletId: wallet._id,
+      destinationWalletId: destinationWallet?.walletId || "",
+      amount: Number(amount)
+    }, (errorResponse) => {
+      if(errorResponse) {
+        setErrorMessage(errorResponse.error)
+      } else {
+        setOpen(false);
+        setDestinationWallet({})
+        setAmount(0)
+        setErrorMessage("")
+      }
+    })
   }
 
-  if(isLoading()) {
+  if(isLoadingContacts() || isLoadingWallets()) {
     return <Loading />
   }
 
@@ -54,6 +65,7 @@ export const Wallet = () => {
               className="bg-indigo-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
               onClick = {() => {
                 setIsTransferring(false);
+                setErrorMessage("");
                 setOpen(true);
               }}
             >
@@ -64,6 +76,7 @@ export const Wallet = () => {
               className="bg-indigo-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
               onClick = {() => {
                 setIsTransferring(true);
+                setErrorMessage("");
                 setOpen(true);
               }}
             >
@@ -100,6 +113,7 @@ export const Wallet = () => {
             <input
               type="number"
               id="amount"
+              min={0}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
